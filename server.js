@@ -10,8 +10,13 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    console.log("Health Ok")
-    return res.send("Health OK")
+    console.log("Server: Health Ok")
+    return res.send("Server: Health OK")
+})
+
+app.get("/api", (req, res) => {
+    console.log("API: Health Ok")
+    return res.send("API: Health OK")
 })
 
 // Static folder for uploads
