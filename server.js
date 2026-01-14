@@ -6,7 +6,11 @@ const cors = require("cors");
 connectDB();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000", "https://acm-xim-envoy.vercel.app"],
+    credentials: true
+}));
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -32,5 +36,5 @@ app.use("/api/admin", require("./routes/admin"));
 app.use("/api/external-news", require("./routes/news"));
 app.use("/api/upload", require("./routes/upload"));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5000; // Render will inject this automatically
+app.listen(PORT, '0.0.0.0', () => console.log(`Server active on port ${PORT}`));
