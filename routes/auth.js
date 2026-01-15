@@ -25,7 +25,8 @@ router.post("/register", async (req, res) => {
 
         let userRole = 'member';
         if (role === 'admin') {
-            if (adminSecret !== 'ACM_ADMIN_2026') {
+            const secret = process.env.ADMIN_SECRET || 'ADMIN_2026';
+            if (adminSecret !== secret) {
                 return res.status(400).json({ msg: "Invalid Admin Secret Key" });
             }
             userRole = 'admin';
