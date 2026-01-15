@@ -6,7 +6,19 @@ const cors = require("cors");
 connectDB();
 const app = express();
 
-app.use(cors());
+// Request logger for debugging Render/Routing issues
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Robust CORS configuration
+app.use(cors({
+    origin: ["http://localhost:5173", "https://acm-xim-envoy.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
 
 app.use(express.json());
 
@@ -33,5 +45,16 @@ app.use("/api/admin", require("./routes/admin"));
 app.use("/api/external-news", require("./routes/news"));
 app.use("/api/upload", require("./routes/upload"));
 
-const PORT = process.env.PORT || 5000; // Render will inject this automatically
-app.listen(PORT, '0.0.0.0', () => console.log(`Server active on port ${PORT}`));
+// Catch-all 404 handler for debugging missing routes
+app.use((req, res) => {
+    console.log(`404 Hit: ${req.method} ${req.url}`);
+    res.status(404).json({
+        error: "Route not found",
+        method: req.method,
+        path: req.url,
+        tip: "Check if the route is registered in server.js and the path matches exactly."
+    });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
