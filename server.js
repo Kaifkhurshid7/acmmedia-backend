@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 
 // Robust CORS configuration
 app.use(cors({
-    origin: ["http://localhost:5173", "https://acm-xim-envoy.vercel.app"],
+    origin: ["http://localhost:5173", "https://acmmedia-frontend.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
