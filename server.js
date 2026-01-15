@@ -13,12 +13,13 @@ app.use((req, res, next) => {
 });
 
 // Robust CORS configuration
-app.use(cors({
-    origin: ["http://localhost:5173", "https://acmmedia-frontend.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-}));
+// app.use(cors({
+//     origin: ["http://localhost:5173", "https://acmmedia-frontend.vercel.app", "https://acmmedia-frontend.vercel.app"],
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true
+// }));
+app.use(cors());
 
 app.use(express.json());
 
