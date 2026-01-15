@@ -35,7 +35,8 @@ router.post("/register", async (req, res) => {
         await User.create({ name, email, password: hashed, role: userRole });
         res.json({ msg: "Registered" });
     } catch (err) {
-        res.status(500).json({ msg: "Server error" });
+        console.error("Registration Error:", err);
+        res.status(500).json({ msg: "Server error", error: err.message });
     }
 });
 
