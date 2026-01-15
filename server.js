@@ -7,7 +7,12 @@ connectDB();
 const app = express();
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://acm-xim-envoy.vercel.app"],
+    origin: [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://acm-xim-envoy.vercel.app",
+        "https://acm-xim-envoy-backend.onrender.com"
+    ],
     credentials: true
 }));
 
