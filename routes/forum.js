@@ -63,7 +63,7 @@ router.delete("/:id", auth, async (req, res) => {
 
         await thread.deleteOne();
 
-        getIO().emit("analytics:update");
+        emitAnalytics();
 
         res.json({ msg: "Thread removed" });
     } catch (err) {
@@ -71,6 +71,6 @@ router.delete("/:id", auth, async (req, res) => {
     }
 });
 
-const { getIO } = require("../socket");
+const { getIO, emitAnalytics } = require("../socket");
 
 module.exports = router;

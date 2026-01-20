@@ -7,6 +7,7 @@ const role = require("../middleware/role");
 router.post("/", auth, role('admin'), async (req, res) => {
   try {
     const post = await Post.create(req.body);
+    emitAnalytics();
     res.json(post);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
@@ -39,6 +40,8 @@ router.put("/like/:id", auth, async (req, res) => {
       likes: post.likes
     });
 
+    emitAnalytics();
+
     res.json(post.likes);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
@@ -53,7 +56,7 @@ router.delete("/:id", auth, role('admin'), async (req, res) => {
 
     await post.deleteOne();
 
-    getIO().emit("analytics:update");
+    emitAnalytics();
 
     res.json({ msg: "Post removed" });
   } catch (err) {
@@ -62,6 +65,6 @@ router.delete("/:id", auth, role('admin'), async (req, res) => {
   }
 });
 
-const { getIO } = require("../socket");
+const { getIO, emitAnalytics } = require("../socket");
 
 module.exports = router;

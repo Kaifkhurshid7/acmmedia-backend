@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { emitAnalytics } = require("../socket");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -62,6 +63,7 @@ router.post("/register", async (req, res) => {
         });
 
         res.json({ msg: "Registered Successfully" });
+        emitAnalytics(); // Live update for new user
     } catch (err) {
         console.error("Registration Error:", err);
         res.status(500).json({ msg: "Server error", error: err.message });
@@ -86,6 +88,7 @@ router.post("/create-admin", auth, role('admin'), async (req, res) => {
         const hashed = await bcrypt.hash(password, 10);
         await User.create({ name, email: emailLower, password: hashed, role: 'admin' });
         res.json({ msg: 'Admin created' });
+        emitAnalytics(); // Live update for new admin
     } catch (err) {
         res.status(500).json({ msg: 'Server error' });
     }
