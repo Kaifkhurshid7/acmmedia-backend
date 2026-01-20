@@ -32,11 +32,18 @@ router.post("/reply/:id", auth, async (req, res) => {
         const thread = await Forum.findById(req.params.id);
         if (!thread) return res.status(404).json({ msg: "Thread not found" });
 
-        thread.replies.push({
+        const newReply = {
             user: req.user.id,
             text: req.body.text
-        });
+        };
+        thread.replies.push(newReply);
         await thread.save();
+
+        getIO().emit("forum:new-reply", {
+            threadId: thread._id,
+            reply: newReply
+        });
+
         res.json(thread);
     } catch (err) {
         res.status(500).json({ msg: "Server error" });
@@ -55,10 +62,15 @@ router.delete("/:id", auth, async (req, res) => {
         }
 
         await thread.deleteOne();
+
+        getIO().emit("analytics:update");
+
         res.json({ msg: "Thread removed" });
     } catch (err) {
         res.status(500).json({ msg: "Server error" });
     }
 });
+
+const { getIO } = require("../socket");
 
 module.exports = router;

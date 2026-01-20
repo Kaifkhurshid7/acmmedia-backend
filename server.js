@@ -58,4 +58,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
+
+// Initialize Socket.IO
+const io = require("./socket").init(server);

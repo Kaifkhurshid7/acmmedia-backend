@@ -33,6 +33,12 @@ router.put("/like/:id", auth, async (req, res) => {
     }
 
     await post.save();
+
+    getIO().emit("post:like-update", {
+      postId: post._id,
+      likes: post.likes
+    });
+
     res.json(post.likes);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
@@ -46,11 +52,16 @@ router.delete("/:id", auth, role('admin'), async (req, res) => {
     if (!post) return res.status(404).json({ msg: "Post not found" });
 
     await post.deleteOne();
+
+    getIO().emit("analytics:update");
+
     res.json({ msg: "Post removed" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
+const { getIO } = require("../socket");
 
 module.exports = router;
