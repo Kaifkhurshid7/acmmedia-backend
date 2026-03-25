@@ -6,7 +6,6 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./docs/swagger");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
-connectDB();
 const app = express();
 
 // Request logger for debugging Render/Routing issues
@@ -62,7 +61,18 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
 
-// Initialize Socket.IO
-const io = require("./socket").init(server);
+const startServer = async () => {
+    try {
+        await connectDB();
+        const server = app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
+
+        // Initialize Socket.IO after the HTTP server is ready.
+        require("./socket").init(server);
+    } catch (err) {
+        console.error("Server startup failed:", err.message);
+        process.exit(1);
+    }
+};
+
+startServer();
