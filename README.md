@@ -10,7 +10,7 @@ Core capabilities include:
 
 - member and admin registration/login
 - university email domain validation during signup
-- admin-managed posts and events
+- admin-managed posts and events with complete CRUD
 - post likes and comments
 - forum threads and replies
 - chapter analytics for admins
@@ -80,18 +80,21 @@ The API runs on `http://localhost:5000` by default.
 
 ## API Base URL
 
-All application routes are mounted under `/api`.
+All application routes are mounted under `/api/v1`.
+
+Interactive API docs are available at `/api-docs` (Swagger UI).
 
 Health checks:
 
 - `GET /` returns a plain server health message
 - `GET /api` returns a plain API health message
+- `GET /api/v1` returns a versioned API health message
 
 ## Main API Routes
 
 ### Authentication
 
-Base path: `/api/auth`
+Base path: `/api/v1/auth`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -107,18 +110,20 @@ Registration is restricted to official XIM domains:
 
 ### Posts
 
-Base path: `/api/posts`
+Base path: `/api/v1/posts`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
 | `GET` | `/` | Public | List all posts |
+| `GET` | `/:id` | Public | Get a single post by id |
 | `POST` | `/` | Admin | Create a post |
+| `PATCH` | `/:id` | Admin | Update a post |
 | `PUT` | `/like/:id` | Authenticated | Toggle like on a post |
 | `DELETE` | `/:id` | Admin | Delete a post |
 
 ### Comments
 
-Base path: `/api/comments`
+Base path: `/api/v1/comments`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -128,7 +133,7 @@ Base path: `/api/comments`
 
 ### Forum
 
-Base path: `/api/forum`
+Base path: `/api/v1/forum`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -139,17 +144,19 @@ Base path: `/api/forum`
 
 ### Events
 
-Base path: `/api/events`
+Base path: `/api/v1/events`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
 | `GET` | `/` | Public | List events sorted by date |
+| `GET` | `/:id` | Public | Get event by id |
 | `POST` | `/` | Admin | Create an event |
+| `PATCH` | `/:id` | Admin | Update an event |
 | `DELETE` | `/:id` | Admin | Delete an event |
 
 ### Admin Analytics
 
-Base path: `/api/admin`
+Base path: `/api/v1/admin`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -164,7 +171,7 @@ Current analytics include:
 
 ### External News
 
-Base path: `/api/external-news`
+Base path: `/api/v1/external-news`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -177,7 +184,7 @@ Notes:
 
 ### Uploads
 
-Base path: `/api/upload`
+Base path: `/api/v1/upload`
 
 | Method | Route | Access | Description |
 | --- | --- | --- | --- |
@@ -278,6 +285,16 @@ This backend is designed to work with the ACM frontend and exposes the route gro
 - `vercel.json` is present in this repository, but this project itself is an Express backend rather than a static frontend
 - CORS is currently open via `app.use(cors())`
 - uploaded files are stored on the local filesystem under `uploads/`
+
+## Scalability Note
+
+- routes, middleware, and services are modularized for easier horizontal growth
+- API versioning under `/api/v1` supports backward-compatible evolution
+- JWT auth enables stateless API servers behind load balancers
+- MongoDB indexing on high-traffic fields (email, post/event dates, forum timestamps) is the next optimization step
+- response caching is already used for external news and can be expanded to hot read endpoints
+- horizontal scaling via multiple Node instances + load balancer is straightforward with the current stateless pattern
+- Redis is the recommended next step for distributed caching, rate limiting, and pub/sub coordination
 
 ## Important Notes For Contributors
 

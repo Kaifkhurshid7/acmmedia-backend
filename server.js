@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./docs/swagger");
+const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
 connectDB();
 const app = express();
@@ -33,29 +36,28 @@ app.get("/api", (req, res) => {
     return res.send("API: Health OK")
 })
 
+app.get("/api/v1", (req, res) => {
+    console.log("API v1: Health Ok")
+    return res.send("API v1: Health OK")
+})
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Static folder for uploads
 app.use('/uploads', express.static('uploads'));
 
 // Routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/posts", require("./routes/posts"));
-app.use("/api/comments", require("./routes/comments"));
-app.use("/api/forum", require("./routes/forum"));
-app.use("/api/events", require("./routes/events"));
-app.use("/api/admin", require("./routes/admin"));
-app.use("/api/external-news", require("./routes/news"));
-app.use("/api/upload", require("./routes/upload"));
+app.use("/api/v1/auth", require("./routes/auth"));
+app.use("/api/v1/posts", require("./routes/posts"));
+app.use("/api/v1/comments", require("./routes/comments"));
+app.use("/api/v1/forum", require("./routes/forum"));
+app.use("/api/v1/events", require("./routes/events"));
+app.use("/api/v1/admin", require("./routes/admin"));
+app.use("/api/v1/external-news", require("./routes/news"));
+app.use("/api/v1/upload", require("./routes/upload"));
 
-// Catch-all 404 handler for debugging missing routes
-app.use((req, res) => {
-    console.log(`404 Hit: ${req.method} ${req.url}`);
-    res.status(404).json({
-        error: "Route not found",
-        method: req.method,
-        path: req.url,
-        tip: "Check if the route is registered in server.js and the path matches exactly."
-    });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => console.log(`Server active on port ${PORT}`));

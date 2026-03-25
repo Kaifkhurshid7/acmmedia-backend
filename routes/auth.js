@@ -6,108 +6,88 @@ const jwt = require("jsonwebtoken");
 const SECRET = require("../config/jwt");
 const auth = require("../middleware/auth");
 const role = require("../middleware/role");
+const { AppError } = require("../middleware/errorHandler");
+const { validateRegister, validateLogin } = require("../middleware/validators");
 
-router.get("/me", auth, async (req, res) => {
+router.get("/me", auth, async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id).select("-password");
         res.json(user);
     } catch (err) {
-        res.status(500).send("Server Error");
+        return next(err);
     }
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register", validateRegister, async (req, res, next) => {
     try {
-        const { name, email, password, role, adminSecret } = req.body;
+        const { name, email, password, role, adminSecret, isAcmMember, acmId } = req.body;
 
-        // 1. Basic Field Validation
-        if (!name || !email || !password) {
-            return res.status(400).json({ msg: "Missing fields" });
-        }
-
-        // 2. STRICT DOMAIN VALIDATION (XIM UNIVERSITY & STUDENT DOMAINS)
         const emailLower = email.toLowerCase();
-        const allowedDomains = ["xim.edu.in", "stu.xim.edu.in"];
 
-        // Check if the email ends exactly with @xim.edu.in or @stu.xim.edu.in
-        const isValidDomain = allowedDomains.some(domain => emailLower.endsWith(`@${domain}`));
-
-        if (!isValidDomain) {
-            return res.status(403).json({
-                success: false,
-                msg: "Registration restricted. Please use your official @stu.xim.edu.in or @xim.edu.in email."
-            });
-        }
-
-        // 3. Check for existing user
         const existing = await User.findOne({ email: emailLower });
-        if (existing) return res.status(400).json({ msg: "User already exists" });
+        if (existing) return next(new AppError(400, "User already exists"));
 
-        // 4. Role Assignment Logic
         let userRole = 'member';
         if (role === 'admin') {
             const secret = process.env.ADMIN_SECRET || 'ADMIN_2026';
             if (adminSecret !== secret) {
-                return res.status(400).json({ msg: "Invalid Admin Secret Key" });
+                return next(new AppError(400, "Invalid Admin Secret Key"));
             }
             userRole = 'admin';
         }
 
-        // 5. Password Hashing and Creation
         const hashed = await bcrypt.hash(password, 10);
         await User.create({
             name,
-            email: emailLower, // Store in lowercase for consistency
+            email: emailLower,
             password: hashed,
-            role: userRole
+            role: userRole,
+            isAcmMember,
+            acmId
         });
 
         res.json({ msg: "Registered Successfully" });
-        emitAnalytics(); // Live update for new user
+        emitAnalytics();
     } catch (err) {
-        console.error("Registration Error:", err);
-        res.status(500).json({ msg: "Server error", error: err.message });
+        return next(err);
     }
 });
 
 // Admins can create other admin users
-router.post("/create-admin", auth, role('admin'), async (req, res) => {
+router.post("/create-admin", auth, role('admin'), async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
-        if (!name || !email || !password) return res.status(400).json({ msg: "Missing fields" });
+        if (!name || !email || !password) return next(new AppError(400, "Missing fields"));
 
-        // Check Domain even for Admin-created accounts
         const emailLower = email.toLowerCase();
         if (!emailLower.endsWith("@xim.edu.in") && !emailLower.endsWith("@stu.xim.edu.in")) {
-            return res.status(400).json({ msg: "Admin must have a valid XIM university email" });
+            return next(new AppError(400, "Admin must have a valid XIM university email"));
         }
 
         const existing = await User.findOne({ email: emailLower });
-        if (existing) return res.status(400).json({ msg: "User already exists" });
+        if (existing) return next(new AppError(400, "User already exists"));
 
         const hashed = await bcrypt.hash(password, 10);
         await User.create({ name, email: emailLower, password: hashed, role: 'admin' });
         res.json({ msg: 'Admin created' });
-        emitAnalytics(); // Live update for new admin
+        emitAnalytics();
     } catch (err) {
-        res.status(500).json({ msg: 'Server error' });
+        return next(err);
     }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", validateLogin, async (req, res, next) => {
     try {
-        if (!req.body.email) return res.status(400).json({ msg: "Email is required" });
-
         const user = await User.findOne({ email: req.body.email.toLowerCase() });
-        if (!user) return res.status(400).json({ msg: "User not found" });
+        if (!user) return next(new AppError(400, "User not found"));
 
         const ok = await bcrypt.compare(req.body.password, user.password);
-        if (!ok) return res.status(400).json({ msg: "Wrong password" });
+        if (!ok) return next(new AppError(400, "Wrong password"));
 
         const token = jwt.sign({ id: user._id, role: user.role }, SECRET);
         res.json({ token });
     } catch (err) {
-        res.status(500).json({ msg: "Login error" });
+        return next(err);
     }
 });
 
