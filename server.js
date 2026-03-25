@@ -53,7 +53,9 @@ app.use("/api/v1/comments", require("./routes/comments"));
 app.use("/api/v1/forum", require("./routes/forum"));
 app.use("/api/v1/events", require("./routes/events"));
 app.use("/api/v1/admin", require("./routes/admin"));
-app.use("/api/v1/news", require("./routes/news"));
+const newsRouter = require("./routes/news");
+app.use("/api/v1/news", newsRouter);
+app.use("/api/v1/external-news", newsRouter);
 app.use("/api/v1/upload", require("./routes/upload"));
 
 app.use(notFoundHandler);
