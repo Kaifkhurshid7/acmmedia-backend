@@ -1,1 +1,1 @@
-module.exports = "ANTIGRAVITY_SECRET_KEY";
+module.exports = process.env.JWT_SECRET || "ANTIGRAVITY_SECRET_KEY";
