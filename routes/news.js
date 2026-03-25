@@ -42,23 +42,27 @@ router.get("/", async (req, res) => {
             return res.json(fallback);
         }
 
-        const response = await axios.get(`https://newsapi.org/v2/top-headlines`, {
+
+        // GNews API: https://gnews.io/docs/
+        // Example endpoint: https://gnews.io/api/v4/top-headlines?topic=technology&lang=en&token=API_KEY
+        const response = await axios.get('https://gnews.io/api/v4/top-headlines', {
             params: {
-                category: 'technology',
-                language: 'en',
-                apiKey: apiKey
+                topic: 'technology',
+                lang: 'en',
+                token: apiKey
             }
         });
 
         // Sanitize Data
+
         const rawArticles = Array.isArray(response.data.articles) ? response.data.articles : [];
         const articles = rawArticles.map(article => ({
             title: article.title,
             description: article.description,
             url: article.url,
-            image: article.urlToImage,
+            image: article.image,
             publishedAt: article.publishedAt,
-            source: article.source.name
+            source: article.source?.name || (article.source ? article.source : 'GNews')
         })).filter(a => a.title && a.url); // Basic filtering
 
         if (articles.length === 0) {
