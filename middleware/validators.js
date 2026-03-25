@@ -3,6 +3,25 @@ const { body, param, validationResult } = require("express-validator");
 // Allow any valid email for registration
 const xImDomainRule = () => true;
 
+const normalizeBooleanLike = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value !== "string") return value;
+
+    const normalized = value.trim().toLowerCase();
+    if (["true", "yes", "y", "1", "member", "acm member"].includes(normalized)) return true;
+    if (["false", "no", "n", "0", "not yet", "non-member", "non member"].includes(normalized)) return false;
+    return value;
+};
+
+const normalizeRole = (value) => {
+    if (typeof value !== "string") return value;
+
+    const normalized = value.trim().toLowerCase();
+    if (["member", "student", "student / chapter member", "chapter member"].includes(normalized)) return "member";
+    if (normalized === "admin") return "admin";
+    return value;
+};
+
 const validateRequest = (req, res, next) => {
     const errors = validationResult(req);
     if (errors.isEmpty()) return next();
@@ -26,9 +45,9 @@ const validateRegister = [
     body("name").trim().notEmpty().withMessage("Name is required").isLength({ min: 2, max: 100 }).withMessage("Name must be 2-100 characters"),
     body("email").trim().notEmpty().withMessage("Email is required").isEmail().withMessage("Invalid email format").custom(xImDomainRule),
     body("password").notEmpty().withMessage("Password is required").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
-    body("role").optional().isIn(["member", "admin"]).withMessage("Role must be member or admin"),
-    body("isAcmMember").optional().isBoolean().withMessage("isAcmMember must be boolean"),
-    body("acmId").optional().isString().trim().isLength({ min: 2, max: 50 }).withMessage("acmId must be 2-50 characters"),
+    body("role").optional().customSanitizer(normalizeRole).isIn(["member", "admin"]).withMessage("Role must be member or admin"),
+    body("isAcmMember").optional().customSanitizer(normalizeBooleanLike).isBoolean().withMessage("isAcmMember must be boolean"),
+    body("acmId").optional({ values: "falsy" }).isString().trim().isLength({ min: 2, max: 50 }).withMessage("acmId must be 2-50 characters"),
     validateRequest
 ];
 
