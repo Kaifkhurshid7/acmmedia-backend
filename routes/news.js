@@ -28,12 +28,6 @@ router.get("/", async (req, res) => {
 
         console.log("Fetching fresh news...");
 
-        // Fetch from NewsAPI (Technology category)
-        // Using a public free key or env variable. 
-        // Ideally: process.env.NEWS_API_KEY
-        // For now, I'll assume the user might not have one set, 
-        // so I'll add a fallback or use a placeholder if env is missing.
-
         const apiKey = process.env.NEWS_API_KEY;
 
         if (!apiKey) {
@@ -41,15 +35,12 @@ router.get("/", async (req, res) => {
             newsCache.set(CACHE_KEY, fallback, 300);
             return res.json(fallback);
         }
-
-
-        // GNews API: https://gnews.io/docs/
-        // Example endpoint: https://gnews.io/api/v4/top-headlines?topic=technology&lang=en&token=API_KEY
-        const response = await axios.get('https://gnews.io/api/v4/top-headlines', {
+        // NewsAPI: https://newsapi.org/docs/endpoints/top-headlines
+        const response = await axios.get('https://newsapi.org/v2/top-headlines', {
             params: {
-                topic: 'technology',
-                lang: 'en',
-                token: apiKey
+                category: 'technology',
+                language: 'en',
+                apiKey
             }
         });
 
@@ -60,9 +51,9 @@ router.get("/", async (req, res) => {
             title: article.title,
             description: article.description,
             url: article.url,
-            image: article.image,
+            image: article.urlToImage,
             publishedAt: article.publishedAt,
-            source: article.source?.name || (article.source ? article.source : 'GNews')
+            source: article.source?.name || 'NewsAPI'
         })).filter(a => a.title && a.url); // Basic filtering
 
         if (articles.length === 0) {
