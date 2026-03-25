@@ -1,16 +1,7 @@
 const { body, param, validationResult } = require("express-validator");
 
-const xImDomainRule = (value) => {
-    const emailLower = value.toLowerCase();
-    const allowedDomains = ["xim.edu.in", "stu.xim.edu.in"];
-    const isValidDomain = allowedDomains.some((domain) => emailLower.endsWith(`@${domain}`));
-
-    if (!isValidDomain) {
-        throw new Error("Registration restricted to @stu.xim.edu.in or @xim.edu.in emails");
-    }
-
-    return true;
-};
+// Allow any valid email for registration
+const xImDomainRule = () => true;
 
 const validateRequest = (req, res, next) => {
     const errors = validationResult(req);
